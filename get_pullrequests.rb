@@ -12,7 +12,7 @@ listfile =  "pull_requests.csv"
 $list_file = File.open(listfile, 'w')
 $list_file.puts('Repo, PR owner')
 
-
+# initialize
 start_page = 0
 start_pr_page = 0
 per_page = 10
@@ -25,15 +25,13 @@ pr_done = false
 done = false
 # Get date info
 time = Time.new
-
 datedata = "#{time.year}-#{time.month}-#{time.day}"
 
-# create output files - one for stats and one for specific referrers
+# get the auth token
 auth_result = JSON.parse(RestClient.get('https://api.github.com/user',
                          {:params => {:oauth_token => access_token} }) )
 
-# puts "command is #{command}"
-
+# loop through the repos
 while done == false do
   # fetch repos
   command = "https://api.github.com/users/#{username}/repos"
@@ -47,7 +45,8 @@ while done == false do
     repo_result.each do |repo|
       reponame = repo["name"]
       puts "repo #{reponame}"
-
+      
+      # loop through the PRs
       pcommand = "https://api.github.com/repos/#{username}/#{reponame}/pulls?state=all"
       pr_done = false
       pr_pages = 0
@@ -55,10 +54,10 @@ while done == false do
         pull_result = JSON.parse(RestClient.get("#{pcommand}",
              {:params => {:oauth_token => access_token, :per_page => per_pr_page, :page => pr_pages} }))
         numpulls = pull_result.size
-        # if ((pull_result.size > 0) or (pull_result != nil)) then
         if (pull_result.size > 0) then
            pull_result.each do |pullr|
               prowner = pullr["user"]["login"]
+              # for now, just write the repo and the pull request originator to the output file
               $list_file.puts("#{reponame}, #{prowner}")
            end
            # numpulls = pull_result["number"]
